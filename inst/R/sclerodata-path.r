@@ -1,0 +1,1 @@
+sclerodata.path <- "~/Data/sclerodata"
