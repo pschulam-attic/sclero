@@ -5,6 +5,7 @@ options(warn = -1)
 
 require(ggplot2)
 require(GGally)
+library(grid)
 require(plyr)
 require(sclero)
 
@@ -108,3 +109,53 @@ p.1.2 <- p.1.2 + geom_point(alpha = 0.2) +
 
 
 putPlot(p, p.1.2, 1, 2)
+
+# Plot clinical variable interactions
+
+clinic.cross.vars <- c("skin.severity", "rp.severity", "gi.severity")
+clinic.cross.data <- worst.data[, clinic.cross.vars]
+
+p1 <- ggplot(clinic.cross.data, aes(x = skin.severity, y = rp.severity)) + geom_jitter(alpha = 0.2)
+p2 <- ggplot(clinic.cross.data, aes(x = skin.severity, y = gi.severity)) + geom_jitter(alpha = 0.2)
+p3 <- ggplot(clinic.cross.data, aes(x = rp.severity, y = gi.severity)) + geom_jitter(alpha = 0.2)
+
+grid.arrange(p1, p2, p3, nrow = 2, ncol = 2, main = "Clinical Var. Interactions")
+
+# Plot total skin score against severity scores
+
+total.skin.vars <- c("total.skin", "rp.severity", "gi.severity")
+total.skin.data <- worst.data[, total.skin.vars]
+total.skin.data <- melt(total.skin.data, measure.vars = c("rp.severity", "gi.severity"))
+
+p <- ggplot(total.skin.data, aes(x = total.skin, y = value))
+p <- p + geom_jitter(alpha = 0.2) + facet_wrap(~ variable, ncol = 1)
+p + labs(title = "Total Skin Score Against Severity Scores")
+
+# Plot total skin score against lab variables
+
+total.skin.vars <- c("total.skin", "fvc", "dlco")
+total.skin.data <- worst.data[, total.skin.vars]
+total.skin.data <- melt(total.skin.data, measure.vars = c("fvc", "dlco"))
+
+p <- ggplot(total.skin.data, aes(x = total.skin, y = value))
+p <- p + geom_point(alpha = 0.2) + geom_smooth() + facet_wrap(~ variable, ncol = 1)
+p + labs(title = "Total Skin Score Against PFTs")
+
+# FVC against clinic histograms
+
+clinic.hist.data <- melt(worst.data, measure.vars = c("skin.severity", "rp.severity", "gi.severity"))
+fvc.median.data <- ddply(clinic.hist.data, ~ variable + value, summarize, fvc.med = median(fvc, na.rm = TRUE))
+
+p <- ggplot(clinic.hist.data, aes(x = fvc))
+p <- p + geom_vline(aes(xintercept = fvc.med), data = fvc.median.data, color = "red", linetype = "dashed")
+p <- p + facet_grid(value ~ variable) + labs(title = "FVC Against Clinical Measurements (Red = Median)")
+p + geom_histogram(binwidth = 2, alpha = 0.5) + xlim(50, 100)
+
+# DLCO against clinic histograms
+
+dlco.median.data <- ddply(clinic.hist.data, ~ variable + value, summarize, dlco.med = median(dlco, na.rm = TRUE))
+
+p <- ggplot(clinic.hist.data, aes(x = dlco))
+p <- p + geom_vline(aes(xintercept = dlco.med), data = dlco.median.data, color = "red", linetype = "dashed")
+p <- p + facet_grid(value ~ variable) + labs(title = "DLCO Against Clinical Measurements (Red = Median)")
+p + geom_histogram(binwidth = 2, alpha = 0.5) + xlim(50, 100)
