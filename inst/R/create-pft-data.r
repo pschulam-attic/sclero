@@ -32,4 +32,6 @@ pft <- melt(pft.raw, measure.vars = c("fvc", "dlco"),
 pft <- transform(pft, perc.of.predicted = ifelse(test.type == "fvc", perc.fvc, perc.dlco))
 pft <- subset(pft, select = -c(perc.fvc, perc.dlco))
 
+pft <- arrange(pft, patient.id, date, test.type)
+
 save(pft, file = pft.rdata)
