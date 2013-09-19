@@ -47,7 +47,7 @@ for (var.name in full.cross.vars[1:3]) {
 }
 
 ggpairs(
-    full.cross.data,
+    na.omit(full.cross.data),
     title = "Clinical Var. Interaction with FVC/DLCO",
     axisLabels = "show",
     diag = list(continuous = "bar", discrete = "bar"),
@@ -70,4 +70,41 @@ p <- ggpairs(
     )
 
 p.1.2 <- qplot(x = dlco, y = fvc, data = lab.cross.data, alpha = 0.2)
+putPlot(p, p.1.2, 1, 2)
+
+# Plot lab var coef interactions
+
+get_var_slope <- function(pft.data, patient.data, test.type.name) {
+  pft.data <- subset(pft, test.type == test.type.name)
+  pft.data <- add_date_since(pft.data, "date", "year", patient.data, "date.diagnosed")
+  pft.data <- na.omit(pft.data)
+
+  lme.fit <- fit_mixed_effects(perc.of.predicted ~ 1 + year, ~ 1 + year | patient.id, data = pft.data)
+  cf.data <- patient_coef(lme.fit)
+  cf.data <- cf.data[, c("patient.id", "year")]
+  names(cf.data) <- c("patient.id", paste0(test.type.name, ".slope"))
+
+  return(cf.data)
+}
+
+fvc.slopes <- get_var_slope(pft, patient, "fvc")
+dlco.slopes <- get_var_slope(pft, patient, "dlco")
+all.slopes <- merge(fvc.slopes, dlco.slopes, by = "patient.id")
+
+p <- ggpairs(
+    all.slopes, columns = c(2, 3),
+    title = "Lab Variable Slope Interactions",
+    axisLabels = "internal",
+    diag = list(continuous = "bar"),
+    upper = list(continuous = "points"),
+    lower = list(continuous = "density")
+    )
+
+p.1.2 <- ggplot(all.slopes, aes(x = dlco.slope, y = fvc.slope))
+p.1.2 <- p.1.2 + geom_point(alpha = 0.2) +
+    geom_abline(aes(slope = 1), alpha = 0.5, color = "blue", linetype = "dashed") +
+    geom_hline(aes(yintercept = 0), alpha = 0.5, color = "red") +
+    geom_vline(aes(xintercept = 0), alpha = 0.5, color = "red")
+
+
 putPlot(p, p.1.2, 1, 2)
