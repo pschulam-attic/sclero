@@ -1,4 +1,7 @@
-data: data/pft.rdata data/clinic.rdata data/patient.rdata
+data: data/patientsplit.rdata data/pft.rdata data/clinic.rdata data/patient.rdata
+
+data/patientsplit.rdata: inst/R/create-patientsplit-data.r
+	Rscript $<
 
 data/pft.rdata: inst/R/create-pft-data.r
 	Rscript $<
