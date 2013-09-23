@@ -10,14 +10,16 @@ patient.raw <- read.csv(patient.csv)
 
 keep.columns <- c(
     "PtID", "DOB", "Sex", "Race1", "Race2", "ethnic",
-    "DateFirstSeen", "DateDiagnosis", "Date1stSymptom"
+    "DateFirstSeen", "DateDiagnosis", "Date1stSymptom",
+    "ingSmokStatus"
     )
 
 patient.raw <- patient.raw[, keep.columns]
 
 new.names <- c(
     "patient.id", "date.of.birth", "sex", "race1", "race2", "ethnicity",
-    "date.first.seen", "date.diagnosed", "date.of.first.symptom"
+    "date.first.seen", "date.diagnosed", "date.of.first.symptom",
+    "smoker"
     )
 
 names(patient.raw) <- new.names
